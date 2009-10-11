@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, time, os, urllib2, shelve, string, xmltramp, mimetools, mimetypes, md5, webbrowser
+import sys, time, os, urllib2, shelve, string, xmltramp, mimetools, mimetypes, md5, webbrowser, Growl
 #
 #   uploadr.py
 #
@@ -37,7 +37,7 @@ import sys, time, os, urllib2, shelve, string, xmltramp, mimetools, mimetypes, m
 #
 # Location to scan for new images
 #   
-IMAGE_DIR = "images/"  
+IMAGE_DIR = "images/"
 #
 #   Flickr settings
 #
@@ -88,7 +88,7 @@ class Uploadr:
     
     def __init__( self ):
         self.token = self.getCachedToken()
-
+        self.growl = self.registerGrowl()
 
 
     """
@@ -267,10 +267,16 @@ class Uploadr:
         if ( not self.checkToken() ):
             self.authenticate()
         self.uploaded = shelve.open( HISTORY_FILE )
+        uploadedimgs = 0
         for image in newImages:
-            self.uploadImage( image )
+          if ( self.uploadImage( image ) ):
+            uploadedimgs += 1
+        if ( uploadedimgs > 0 ):
+          message = str(uploadedimgs) + " images uploaded to Flickr."
+          self.growlNotify( "Photos uploaded", message )
         self.uploaded.close()
         
+
     def grabNewImages( self ):
         images = []
         foo = os.walk( IMAGE_DIR )
@@ -306,9 +312,13 @@ class Uploadr:
                 if ( self.isGood( res ) ):
                     print "successful."
                     self.logUpload( res.photoid, image )
+                    message = "Uploaded photo " + image
+                    #self.growlNotify( "Photo uploaded", message)
+                    return True
                 else :
                     print "problem.."
                     self.reportError( res )
+                    return False
             except:
                 print str(sys.exc_info())
 
@@ -394,7 +404,17 @@ class Uploadr:
             self.upload()
             print "Last check: " , str( time.asctime(time.localtime()))
             time.sleep( SLEEP_TIME )
+    
+
+    def registerGrowl( self ):
+        growl = Growl.GrowlNotifier("uploader.py", ["One"])
+        growl.register()
+        return growl
       
+
+    def growlNotify( self, title, description):
+        self.growl.notify("One", title, description)
+
 if __name__ == "__main__":
     flick = Uploadr()
     

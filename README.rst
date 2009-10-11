@@ -20,6 +20,13 @@ lines to your ``$HOME/.bash_profile``::
     export FLICKR_UPLOADR_PY_API_KEY=0123456789abcdef0123456789abcdef
     export FLICKR_UPLOADR_PY_SECRET=0123456789abcdef
 
+Growl Support
+------------
+This version of Uploadr.py supports Growl notifications. It requires the Growl
+python module.
+
+http://growl.info/documentation/developer/python-support.php
+
 
 License
 -------

@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 
-import sys, time, os, urllib2, shelve, string, xmltramp, mimetools, mimetypes, hashlib, webbrowser, Growl
+import sys, time, os, urllib2, shelve, string, xmltramp, mimetools, mimetypes, hashlib, webbrowser
+
+try:
+    import Growl
+    USE_GROWL = True
+except ImportError:
+    USE_GROWL = False
+
 #
 #   uploadr.py
 #
@@ -59,8 +66,8 @@ HISTORY_FILE = "uploadr.history"
 ##
 ##  You shouldn't need to modify anything below here
 ##
-FLICKR["api_key" ] = os.environ['FLICKR_UPLOADR_PY_API_KEY']
-FLICKR["secret" ] = os.environ['FLICKR_UPLOADR_PY_SECRET']
+FLICKR["api_key" ] = "d6f527f17bc43d8677ff1a247da15e30"
+FLICKR["secret" ] = "2e1fb2810e320424"
 
 class APIConstants:
     base = "http://flickr.com/services/"
@@ -88,7 +95,8 @@ class Uploadr:
     
     def __init__( self ):
         self.token = self.getCachedToken()
-        self.growl = self.registerGrowl()
+        if USE_GROWL:
+            self.growl = self.registerGrowl()
 
 
     """
@@ -269,11 +277,12 @@ class Uploadr:
         self.uploaded = shelve.open( HISTORY_FILE )
         uploadedimgs = 0
         for image in newImages:
-          if ( self.uploadImage( image ) ):
-            uploadedimgs += 1
+            if ( self.uploadImage( image ) ):
+                uploadedimgs += 1
         if ( uploadedimgs > 0 ):
-          message = str(uploadedimgs) + " images uploaded to Flickr."
-          self.growlNotify( "Photos uploaded", message )
+            message = str(uploadedimgs) + " images uploaded to Flickr."
+            if USE_GROWL:
+                self.growlNotify( "Photos uploaded", message )
         self.uploaded.close()
         
 
@@ -413,7 +422,8 @@ class Uploadr:
       
 
     def growlNotify( self, title, description):
-        self.growl.notify("One", title, description)
+        if USE_GROWL:
+            self.growl.notify("One", title, description)
 
 if __name__ == "__main__":
     flick = Uploadr()
